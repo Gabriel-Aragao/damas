@@ -1,0 +1,52 @@
+# Game States
+MENU = 'MENU'
+PLAYING = 'PLAYING'
+GAME_OVER = 'GAME_OVER'
+PAUSED = 'PAUSED'
+
+# Player Types
+PLAYER_1 = 'PLAYER_1'
+PLAYER_2 = 'PLAYER_2'
+AI_PLAYER = 'AI'
+
+# Piece Types
+EMPTY = '.'
+RED_PIECE = 'r'
+BLACK_PIECE = 'b'
+RED_KING = 'R'
+BLACK_KING = 'B'
+
+# Move Types
+NORMAL_MOVE = 'NORMAL'
+CAPTURE_MOVE = 'CAPTURE'
+INVALID_MOVE = 'INVALID'
+
+# Board Directions
+DIRECTIONS = {
+    'UP_LEFT': (-1, -1),
+    'UP_RIGHT': (-1, 1),
+    'DOWN_LEFT': (1, -1),
+    'DOWN_RIGHT': (1, 1)
+}
+
+# Game Results
+RED_WINS = 'RED_WINS'
+BLACK_WINS = 'BLACK_WINS'
+DRAW = 'DRAW'
+
+# Event Types
+PIECE_SELECTED = 'PIECE_SELECTED'
+PIECE_MOVED = 'PIECE_MOVED'
+PIECE_CAPTURED = 'PIECE_CAPTURED'
+KING_CROWNED = 'KING_CROWNED'
+
+# Board Positions
+FIRST_ROW = 0
+LAST_ROW = 7
+FIRST_COL = 0
+LAST_COL = 7
+
+# Error Messages
+INVALID_POSITION = 'Invalid board position'
+INVALID_PIECE = 'Invalid piece selection'
+INVALID_MOVE = 'Invalid move'
