@@ -5,7 +5,6 @@ from view.board_view import render_game_state, draw_game_over
 from view.menu_view import render_pause_menu, get_button_clicked
 from config.settings import *
 
-
 def handle_game_loop(screen):
     """
     Main game loop handler for the checkers game
@@ -56,7 +55,7 @@ def handle_game_input(event, game_state):
     if event.type != pygame.MOUSEBUTTONDOWN:
         print("[LOG] Exiting handle_game_input (not mouse button down)")
         return
-        
+    
     # Get board coordinates from mouse position
     mouse_pos = pygame.mouse.get_pos()
     col = mouse_pos[0] // SQUARE_SIZE
@@ -64,13 +63,10 @@ def handle_game_input(event, game_state):
     
     print(f"[LOG] handle_game_input: Clicked position ({row}, {col})")
     
-    # Validate board position
-
-    
     board = game_state['board']
     current_player = game_state['current_player']
     
-    # If no piece is selected
+    # If no piece is currently selected, attempt to select one
     if not game_state['selected_piece']:
         piece = board[row][col]
         print(f"[LOG] handle_game_input: Attempting to select piece {piece}")
@@ -84,8 +80,6 @@ def handle_game_input(event, game_state):
                 game_state['selected_piece'] = (row, col)
                 game_state['valid_moves'] = valid_moves
                 print("[LOG] handle_game_input: Piece selected successfully")
-    
-    # If a piece is already selected
     else:
         start_row, start_col = game_state['selected_piece']
         
@@ -96,18 +90,23 @@ def handle_game_input(event, game_state):
             print("[LOG] handle_game_input: Piece deselected")
             return
         
-        # If clicked position is a valid move
-        if (row, col) in game_state['valid_moves']:
+        # Look for a valid move from the list (each valid move is a (dest_row, dest_col, move_value) tuple)
+        valid_move = None
+        for move in game_state['valid_moves']:
+            if move[0] == row and move[1] == col:
+                valid_move = move
+                break
+        
+        if valid_move:
             print("[LOG] handle_game_input: Making move")
-            # Make the move and let update_game_state handle turn switching
-            update_game_state(game_state, (start_row, start_col), (row, col))
+            update_game_state(game_state, valid_move)
             print(f"[LOG] handle_game_input: Move completed, current player: {game_state['current_player']}")
         else:
-            # Clicked elsewhere - deselect piece if not in middle of multi-capture
+            # Clicked elsewhere – if not forced to capture, then deselect the piece.
             if not game_state['must_capture']:
                 game_state['selected_piece'] = None
                 game_state['valid_moves'] = []
-                print("[LOG] handle_game_input: Invalid move - piece deselected")
+                print("[LOG] handle_gam: Invalid move - piece deselected")
     
     print("[LOG] Exiting handle_game_input")
 
@@ -121,7 +120,7 @@ def handle_pause_menu(screen):
             if event.type == pygame.QUIT:
                 print("[LOG] handle_pause_menu returning: 'exit'")
                 return "exit"
-                
+            
             if event.type == pygame.MOUSEBUTTONDOWN:
                 action = get_button_clicked(button_positions, event.pos)
                 if action:
@@ -132,6 +131,10 @@ def handle_pause_menu(screen):
             
             # Update button hover states
             button_positions = render_pause_menu(screen)
+
+def start_game():
+    """Initialize and start the game."""
+    print("[LOG] Entering start_game()")
 
 def start_game():
     """Initialize and start the game."""
