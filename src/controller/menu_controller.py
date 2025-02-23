@@ -1,6 +1,7 @@
 import pygame
 from view.menu_view import render_menu, render_settings_menu, get_button_clicked
-from controller.game_controller import start_game
+from controller.game_controller import start_game  # for PvP games
+from controller.game_controller import start_ai_game  # for player vs AI games
 
 def handle_main_menu(screen):
     """Handle main menu interaction and navigation."""
@@ -8,12 +9,12 @@ def handle_main_menu(screen):
     while running:
         # Draw menu and get button positions
         button_positions = render_menu(screen)
-        
+    
         # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return "exit"
-                
+    
             if event.type == pygame.MOUSEBUTTONDOWN:
                 action = get_button_clicked(button_positions, event.pos)
                 if action:
@@ -23,8 +24,10 @@ def handle_main_menu(screen):
                         if result == "exit":
                             return "exit"
                     elif action == "ai":
-                        # Start player vs AI game (future implementation)
-                        pass
+                        # Start player vs AI game
+                        result = start_ai_game()
+                        if result == "exit":
+                            return "exit"
                     elif action == "settings":
                         # Open settings menu
                         result = handle_settings_menu(screen)
@@ -32,21 +35,21 @@ def handle_main_menu(screen):
                             return "exit"
                     elif action == "exit":
                         return "exit"
-        
+    
         pygame.display.flip()
-        
+    
 def handle_settings_menu(screen):
     """Handle settings menu interaction."""
     running = True
     while running:
         # Draw settings menu and get button positions
         button_positions = render_settings_menu(screen)
-        
+    
         # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return "exit"
-                
+    
             if event.type == pygame.MOUSEBUTTONDOWN:
                 action = get_button_clicked(button_positions, event.pos)
                 if action:
@@ -59,7 +62,7 @@ def handle_settings_menu(screen):
                         toggle_setting('kings_move_multiple')
                     elif action == "back":
                         return None
-        
+    
         pygame.display.flip()
 
 def toggle_setting_handler(setting_name):

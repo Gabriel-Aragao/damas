@@ -1,25 +1,40 @@
+# File: /home/gabriel/code/IFPB/projeto p1/damas/src/controller/game_controller.py
 import pygame
 from model.game_state import initialize_game, update_game_state
 from model.moves import get_valid_moves
 from view.board_view import render_game_state, draw_game_over
 from view.menu_view import render_pause_menu, get_button_clicked
-from config.settings import *
+from config.settings import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, SQUARE_SIZE
 
-def handle_game_loop(screen):
+def handle_game_loop(screen, mode='pvp'):
     """
-    Main game loop handler for the checkers game
+    Main game loop handler for the checkers game.
+    The 'mode' parameter can be 'pvp' (player vs player) or 'ai' (player vs AI).
+    In AI mode, the current_player is expected to be 'RED' for the human and 'BLACK' for AI.
     """
     print("[LOG] Entering handle_game_loop()")
     
-    # Initialize game state
+    # Initialize game state and set game mode
     game_state = initialize_game()
-    clock = pygame.time.Clock()
+    game_state['mode'] = mode
+    if mode == 'ai':
+        # In player vs AI, human plays RED, AI plays BLACK.
+        game_state['current_player'] = 'RED'
     
+    clock = pygame.time.Clock()
     running = True
     while running:
         clock.tick(60)
         
-        # Process all events
+        # If in AI mode and it's AI's turn (BLACK), process the AI move.
+        if game_state.get('mode') == 'ai' and game_state['current_player'] == 'BLACK':
+            from controller.ai_controller import handle_ai_turn  # import AI logic
+            handle_ai_turn(game_state)
+            render_game_state(screen, game_state)
+            pygame.time.wait(500)  # brief pause to observe AI move
+            continue
+        
+        # Process events for human input.
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 print("[LOG] handle_game_loop returning: 'exit' (quit event)")
@@ -32,17 +47,17 @@ def handle_game_loop(screen):
                         return action
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 handle_game_input(event, game_state)
-        
+    
         # Update display
         render_game_state(screen, game_state)
-        
+    
         # Check for game over
-        if game_state['game_over']:
-            draw_game_over(screen, game_state['winner'])
+        if game_state.get('game_over'):
+            draw_game_over(screen, game_state.get('winner', 'No one'))
             pygame.time.wait(2000)
             print("[LOG] handle_game_loop returning: 'menu' (game over)")
             return "menu"
-        
+    
         pygame.display.flip()
     
     print("[LOG] handle_game_loop returning: 'exit' (loop ended)")
@@ -56,7 +71,7 @@ def handle_game_input(event, game_state):
         print("[LOG] Exiting handle_game_input (not mouse button down)")
         return
     
-    # Get board coordinates from mouse position
+    # Get board coordinates from mouse position.
     mouse_pos = pygame.mouse.get_pos()
     col = mouse_pos[0] // SQUARE_SIZE
     row = mouse_pos[1] // SQUARE_SIZE
@@ -66,31 +81,32 @@ def handle_game_input(event, game_state):
     board = game_state['board']
     current_player = game_state['current_player']
     
-    # If no piece is currently selected, attempt to select one
-    if not game_state['selected_piece']:
+    # If no piece is currently selected, attempt to select one.
+    if not game_state.get('selected_piece'):
         piece = board[row][col]
         print(f"[LOG] handle_game_input: Attempting to select piece {piece}")
-        
-        # Check if clicked on current player's piece
+    
+        # Check if the clicked piece belongs to the current player.
         if piece.lower() == current_player[0].lower():
             valid_moves = get_valid_moves(board, row, col)
             print(f"[LOG] handle_game_input: Valid moves found: {valid_moves}")
-            
-            if valid_moves:  # If there are any valid moves
+    
+            if valid_moves:  # If there are any valid moves, select the piece.
                 game_state['selected_piece'] = (row, col)
                 game_state['valid_moves'] = valid_moves
                 print("[LOG] handle_game_input: Piece selected successfully")
+            else:
+                return
     else:
         start_row, start_col = game_state['selected_piece']
-        
-        # If clicked on the same piece, deselect it
+        # If the same piece is clicked again, deselect it.
         if (row, col) == (start_row, start_col):
             game_state['selected_piece'] = None
             game_state['valid_moves'] = []
             print("[LOG] handle_game_input: Piece deselected")
             return
         
-        # Look for a valid move from the list (each valid move is a (dest_row, dest_col, move_value) tuple)
+        # Look for a valid move among the available moves.
         valid_move = None
         for move in game_state['valid_moves']:
             if move[0] == row and move[1] == col:
@@ -102,13 +118,13 @@ def handle_game_input(event, game_state):
             update_game_state(game_state, valid_move)
             print(f"[LOG] handle_game_input: Move completed, current player: {game_state['current_player']}")
         else:
-            # Clicked elsewhere – if not forced to capture, then deselect the piece.
-            if not game_state['must_capture']:
+            # If no valid move is found and capturing is not forced, then deselect.
+            if not game_state.get('must_capture'):
                 game_state['selected_piece'] = None
                 game_state['valid_moves'] = []
-                print("[LOG] handle_gam: Invalid move - piece deselected")
+                print("[LOG] handle_game_input: Invalid move - piece deselected")
     
-    print("[LOG] Exiting handle_game_input")
+    print("[LOG] Exiting handle_game_input()")
 
 def handle_pause_menu(screen):
     """Handle pause menu interaction."""
@@ -120,7 +136,7 @@ def handle_pause_menu(screen):
             if event.type == pygame.QUIT:
                 print("[LOG] handle_pause_menu returning: 'exit'")
                 return "exit"
-            
+    
             if event.type == pygame.MOUSEBUTTONDOWN:
                 action = get_button_clicked(button_positions, event.pos)
                 if action:
@@ -128,28 +144,26 @@ def handle_pause_menu(screen):
                     if action == "resume":
                         return None
                     return action
-            
-            # Update button hover states
-            button_positions = render_pause_menu(screen)
+    
+        # Update button hover states.
+        button_positions = render_pause_menu(screen)
 
 def start_game():
-    """Initialize and start the game."""
-    print("[LOG] Entering start_game()")
-
-def start_game():
-    """Initialize and start the game."""
-    print("[LOG] Entering start_game()")
+    """Initialize and start a player vs player game."""
     pygame.init()
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     pygame.display.set_caption(WINDOW_TITLE)
     
-    result = handle_game_loop(screen)
+    result = handle_game_loop(screen, mode='pvp')
     print(f"[LOG] start_game returning: '{result}'")
     return result
 
-def handle_ai_turn(game_state):
-    """Handle AI move when implemented."""
-    print("[LOG] Entering handle_ai_turn() - NOT IMPLEMENTED")
-    # TODO: Implement AI logic
-    print("[LOG] Exiting handle_ai_turn()")
-    pass
+def start_ai_game():
+    """Initialize and start a player vs AI game."""
+    pygame.init()
+    screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+    pygame.display.set_caption(WINDOW_TITLE)
+    
+    result = handle_game_loop(screen, mode='ai')
+    print(f"[LOG] start_ai_game returning: '{result}'")
+    return result
