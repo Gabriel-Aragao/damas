@@ -27,7 +27,6 @@ def render_menu(screen):
     buttons = {
         'pvp': create_button('Player vs Player'),
         'ai': create_button('Player vs AI'),
-        'settings': create_button('Settings'),
         'exit': create_button('Exit')
     }
     
@@ -95,7 +94,6 @@ def render_pause_menu(screen):
     # Create buttons
     buttons = {
         'resume': create_button('Resume'),
-        'settings': create_button('Settings'),
         'menu': create_button('Main Menu'),
         'exit': create_button('Exit Game')
     }
