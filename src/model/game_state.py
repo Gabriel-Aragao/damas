@@ -13,6 +13,7 @@ def initialize_game():
         'current_player': 'RED',            # or 'BLACK'
         'selected_piece': None,
         'valid_moves': [],
+        'original_valid_moves': [],         # Stores the valid moves from the original position
         'last_move': None,
         'game_over': False,
         'winner': None,
@@ -23,19 +24,11 @@ def initialize_game():
 def update_game_state(game_state, move):
     """
     Update the game state after a move is executed.
-    The move is a 4-tuple: (dest_row, dest_col, move_value, captured_positions),
-      • move_value == 0 indicates a non‐capturing move,
-      • a positive integer indicates a capturing move (the total capture count),
-      • and "end" indicates the player has chosen to end his capturing chain.
-      
-    - For non‐capturing moves, the piece is moved, promotion is checked,
-      selection is cleared, and the turn switches.
-    - For capturing moves, all jumped pieces (listed in captured_positions) are removed from the board.
-      After the move, promotion is checked. If further captures are available from the new position,
-      the piece remains selected (with valid chain‐capture moves, including an optional "end" move);
-      otherwise, the selection is cleared and the turn is switched.
-    - For an "end" move, the capture chain is terminated and the turn passes to the opponent.
-    Finally, the board is scanned to see if one color has no pieces left – if so, the game ends.
+    The move is a 4-tuple: (dest_row, dest_col, move_value, captured_positions).
+    - move_value == 0 indicates a non-capturing move.
+    - A positive integer indicates a capturing move (the number of pieces captured).
+    
+    For partial captures, the turn ends immediately after the move.
     """
     # Get the starting square of the move.
     selected = game_state.get('selected_piece')
@@ -45,6 +38,10 @@ def update_game_state(game_state, move):
     dest_row, dest_col, move_value, captured_positions = move
     board = game_state['board']
     piece = board[selected[0]][selected[1]]
+    start_row, start_col = selected
+    
+    # Save the original board state for debugging
+    orig_board = [row[:] for row in board]
     
     # Clear the starting square.
     board[selected[0]][selected[1]] = '.'
@@ -67,28 +64,43 @@ def update_game_state(game_state, move):
     board[dest_row][dest_col] = piece
     game_state['last_move'] = (selected, (dest_row, dest_col))
     
-    if move_value == 0:
-        # Non-capturing move: clear selection, switch turn.
+    # Flag for whether there are further captures available
+    has_further_captures = False
+    
+    # For capture moves, find the maximum capture from the starting position
+    max_capture_from_start = 0
+    if move_value > 0:
+        # Store original valid_moves to calculate max capture
+        original_valid_moves = game_state.get('original_valid_moves', [])
+        if not original_valid_moves:
+            # If not already stored, use the valid_moves from before this move
+            original_valid_moves = game_state.get('valid_moves', [])
+            game_state['original_valid_moves'] = original_valid_moves
+        
+        # Find max capture count from the original position
+        for vm in original_valid_moves:
+            if isinstance(vm[2], int) and vm[2] > max_capture_from_start:
+                max_capture_from_start = vm[2]
+        
+        # Check if this move has further captures available
+        further_captures = get_piece_captures(board, dest_row, dest_col)
+        has_further_captures = len(further_captures) > 0
+    
+    # Direct rule for turn ending:
+    # 1. Non-capturing moves always end the turn
+    # 2. If this was a partial capture (less than max_capture_from_start), end the turn
+    # 3. If there are no further captures available, end the turn
+    if move_value == 0 or move_value < max_capture_from_start or not has_further_captures:
+        # End the turn
         game_state['selected_piece'] = None
         game_state['valid_moves'] = []
+        game_state['original_valid_moves'] = []  # Clear stored moves
         game_state['current_player'] = 'BLACK' if game_state['current_player'] == 'RED' else 'RED'
-    
-    elif move_value == "end":
-        # Ending a capturing chain: clear selection and switch turn.
-        game_state['selected_piece'] = None
-        game_state['valid_moves'] = []
-        game_state['current_player'] = 'BLACK' if game_state['current_player'] == 'RED' else 'RED'
-    
     else:
-        # Capturing move:
-        # Check for further captures from the new position.
-        if get_piece_captures(board, dest_row, dest_col):
-            game_state['selected_piece'] = (dest_row, dest_col)
-            game_state['valid_moves'] = get_valid_moves(board, dest_row, dest_col, chain_capture=True)
-        else:
-            game_state['selected_piece'] = None
-            game_state['valid_moves'] = []
-            game_state['current_player'] = 'BLACK' if game_state['current_player'] == 'RED' else 'RED'
+        # Only continue capture sequence if this was a maximum capture so far
+        # and there are further captures available
+        game_state['selected_piece'] = (dest_row, dest_col)
+        game_state['valid_moves'] = get_valid_moves(board, dest_row, dest_col, chain_capture=True)
     
     # Check if one side has no pieces left.
     check_game_over(game_state)
@@ -162,6 +174,7 @@ def select_piece(game_state, row, col):
     
     game_state['selected_piece'] = (row, col)
     game_state['valid_moves'] = valid_moves
+    game_state['original_valid_moves'] = valid_moves.copy()  # Store a copy of the original valid moves
     game_state['must_capture'] = has_captures_available(board, game_state['current_player'])
     return True
 

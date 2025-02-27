@@ -90,14 +90,14 @@ def minimax(state, depth, maximizing):
         return min_eval, best_move
 
 # Returns the best move (as a tuple: (from_pos, move)) by searching to a fixed depth.
-def calculate_ai_move(game_state, depth=3):
+def calculate_ai_move(game_state, depth=1):
     score, best_move = minimax(game_state, depth, True)
     return best_move
 
 # This function directly applies the chosen move on the real game state.
 def handle_ai_turn(game_state):
     print("[LOG] AI turn started")
-    best_move = calculate_ai_move(game_state, depth=3)
+    best_move = calculate_ai_move(game_state, depth=1)
     if best_move is not None:
         from_pos, move = best_move
         # Set the selected piece for proper update processing.

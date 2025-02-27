@@ -5,11 +5,9 @@ def get_valid_moves(board, row, col, chain_capture=False):
     Returns a list of valid moves for the piece at (row, col).
     Each move is a tuple (target_row, target_col, move_value, captured_positions) where:
       • move_value == 0 for a normal (non-capturing) move,
-      • a positive integer indicates the total number of opponents captured along the chain,
-      • or the string "end" indicates the option to end a capture chain.
+      • a positive integer indicates the total number of opponents captured along the chain.
     captured_positions is a list of (row, col) for pieces captured along the route.
-    When chain_capture is True only capturing moves (and the optional "end"
-    move, if captures exist) are returned.
+    When chain_capture is True only capturing moves are returned.
     """
     moves = []
     piece = board[row][col]
@@ -24,8 +22,7 @@ def get_valid_moves(board, row, col, chain_capture=False):
         if captures:
             for cap in captures:
                 moves.append(cap)
-            # Only add the "end" move if there is at least one capture option.
-            moves.append((row, col, "end", []))
+            # No longer adding the "end" option - turns will end automatically after partial captures
     else:
         # Non-capturing moves:
         if is_king:
@@ -45,16 +42,12 @@ def get_valid_moves(board, row, col, chain_capture=False):
                 r, c = row + dr, col + dc
                 if 0 <= r < board_size and 0 <= c < board_size and board[r][c] == '.':
                     moves.append((r, c, 0, []))
-        # Also add capturing moves.
+        
+        # Add all capturing moves, including intermediate captures
         captures = get_piece_captures(board, row, col)
-        capture_moves = {}
-        for cap in captures:
-            dest = (cap[0], cap[1])
-            count = cap[2]
-            captured = cap[3]
-            if dest not in capture_moves or (isinstance(count, int) and count > capture_moves[dest][2]):
-                capture_moves[dest] = (cap[0], cap[1], count, captured)
-        for move in capture_moves.values():
+        # Instead of selecting only the moves with maximum captures at each destination,
+        # we'll include all valid capture sequences (including partial ones)
+        for move in captures:
             moves.append(move)
     return moves
 
@@ -74,6 +67,7 @@ def _get_multi_captures(board, row, col, piece):
     """
     Recursive helper to compute capture moves that may include multiple jumps.
     Returns a list of moves as tuples: (end_row, end_col, capture_count, captured_positions).
+    Now includes intermediate capture positions as valid moves.
     """
     board_size = len(board)
     moves = []
@@ -105,12 +99,15 @@ def _get_multi_captures(board, row, col, piece):
                         new_board[row][col] = '.'
                         new_board[captured_r][captured_c] = '.'
                         new_board[r][c] = piece
+                        
+                        # Always add the current single capture as a valid move
+                        moves.append((r, c, 1, [(captured_r, captured_c)]))
+                        
                         subsequent = _get_multi_captures(new_board, r, c, piece)
                         if subsequent:
                             for move in subsequent:
                                 moves.append((move[0], move[1], move[2] + 1, [(captured_r, captured_c)] + move[3]))
-                        else:
-                            moves.append((r, c, 1, [(captured_r, captured_c)]))
+                        
                         r += dr
                         c += dc
                     else:
@@ -128,12 +125,15 @@ def _get_multi_captures(board, row, col, piece):
                     new_board[row][col] = '.'
                     new_board[mid_r][mid_c] = '.'
                     new_board[end_r][end_c] = piece
+                    
+                    # Always add the current single capture as a valid move
+                    moves.append((end_r, end_c, 1, [(mid_r, mid_c)]))
+                    
                     subsequent = _get_multi_captures(new_board, end_r, end_c, piece)
                     if subsequent:
                         for move in subsequent:
                             moves.append((move[0], move[1], move[2] + 1, [(mid_r, mid_c)] + move[3]))
-                    else:
-                        moves.append((end_r, end_c, 1, [(mid_r, mid_c)]))
+    
     return moves
 
 def has_captures_available(board, current_player):
