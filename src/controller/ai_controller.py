@@ -90,14 +90,20 @@ def minimax(state, depth, maximizing):
         return min_eval, best_move
 
 # Returns the best move (as a tuple: (from_pos, move)) by searching to a fixed depth.
-def calculate_ai_move(game_state, depth=1):
+def calculate_ai_move(game_state, depth=5):
     score, best_move = minimax(game_state, depth, True)
     return best_move
 
-# This function directly applies the chosen move on the real game state.
+# Handle AI turn function
 def handle_ai_turn(game_state):
     print("[LOG] AI turn started")
-    best_move = calculate_ai_move(game_state, depth=1)
+    from src.config.settings_manager import get_ai_difficulty
+    
+    # Get the current AI difficulty setting (1-5)
+    ai_difficulty = get_ai_difficulty()
+    print(f"[LOG] AI using difficulty level {ai_difficulty} (depth = {ai_difficulty})")
+    
+    best_move = calculate_ai_move(game_state, depth=ai_difficulty)
     if best_move is not None:
         from_pos, move = best_move
         # Set the selected piece for proper update processing.

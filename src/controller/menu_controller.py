@@ -1,8 +1,8 @@
 import asyncio  # For asynchronous delays
 import pygame
 from src.view.menu_view import render_menu, render_settings_menu, get_button_clicked
-from src.controller.game_controller import start_game  # Now async version in game_controller
-from src.controller.game_controller import start_ai_game  # Now async version
+from src.controller.game_controller import start_game, start_ai_game
+from src.config.settings_manager import set_ai_difficulty
 
 # Convert the main menu loop into an async function.
 async def handle_main_menu(screen):
@@ -31,7 +31,7 @@ async def handle_main_menu(screen):
                             return "exit"
                     elif action == "settings":
                         # Await the async settings menu.
-                        result = await handle_settings_menu(screen)
+                        result = await handle_difficulty_menu(screen)
                         if result == "exit":
                             return "exit"
                     elif action == "exit":
@@ -41,9 +41,9 @@ async def handle_main_menu(screen):
         # Yield control to keep the browser responsive.
         await asyncio.sleep(0)
 
-# Convert the settings menu loop into async.
-async def handle_settings_menu(screen):
-    """Handle settings menu interaction asynchronously."""
+# Difficulty menu handler
+async def handle_difficulty_menu(screen):
+    """Handle AI difficulty selection menu."""
     running = True
     while running:
         button_positions = render_settings_menu(screen)
@@ -54,13 +54,12 @@ async def handle_settings_menu(screen):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 action = get_button_clicked(button_positions, event.pos)
                 if action:
-                    print(f'action: {action}')
-                    if action == "force_capture":
-                        toggle_setting('force_capture')
-                    elif action == "multiple_jumps":
-                        toggle_setting('multiple_jumps')
-                    elif action == "kings_move_multiple":
-                        toggle_setting('kings_move_multiple')
+                    if action.startswith('difficulty_'):
+                        # Extract difficulty level from the action string
+                        difficulty = int(action.split('_')[1])
+                        # Set the AI difficulty
+                        set_ai_difficulty(difficulty)
+                        print(f"[LOG] AI difficulty set to level {difficulty}")
                     elif action == "back":
                         return None
         

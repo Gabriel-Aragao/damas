@@ -30,6 +30,9 @@ FORCE_CAPTURE = True  # Force player to capture when possible
 MULTIPLE_JUMPS = False # Allow multiple captures in one turn
 KINGS_MOVE_MULTIPLE = True  # Allow kings to move multiple squares
 
+# AI Settings
+AI_DIFFICULTY = 3  # Default difficulty (1-5) - controls minimax depth
+
 # Debug Settings
 DEBUG_MODE = False
 SHOW_COORDINATES = False
