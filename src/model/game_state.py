@@ -95,10 +95,30 @@ def update_game_state(game_state, move):
     
     return game_state
 
+def has_any_valid_moves(game_state, player):
+    """
+    Check if a player has any valid moves with any of their pieces.
+    Returns True if at least one valid move exists, False otherwise.
+    """
+    board = game_state['board']
+    board_size = len(board)
+    piece_char = 'r' if player == 'RED' else 'b'
+    
+    for row in range(board_size):
+        for col in range(board_size):
+            piece = board[row][col]
+            if piece.lower() == piece_char:
+                # Check if this piece has any valid moves
+                if get_valid_moves(board, row, col):
+                    return True
+    return False
+
 def check_game_over(game_state):
     """
-    Scan the board to count pieces. If one side has no remaining pieces, mark game_over True
-    and set the winner.
+    Check if the game is over due to:
+    1. One side has no remaining pieces
+    2. Current player has no valid moves with any of their pieces
+    If game is over, mark game_over True and set the winner.
     """
     board = game_state['board']
     red_count = 0
@@ -109,12 +129,23 @@ def check_game_over(game_state):
                 red_count += 1
             elif cell.lower() == 'b':
                 black_count += 1
+    
+    # Check for no pieces condition
     if red_count == 0:
         game_state['game_over'] = True
         game_state['winner'] = 'BLACK'
+        return
     elif black_count == 0:
         game_state['game_over'] = True
         game_state['winner'] = 'RED'
+        return
+    
+    # Check for no valid moves condition
+    current_player = game_state['current_player']
+    if not has_any_valid_moves(game_state, current_player):
+        game_state['game_over'] = True
+        game_state['winner'] = 'BLACK' if current_player == 'RED' else 'RED'
+        return
 
 def select_piece(game_state, row, col):
     """Select a piece and update valid moves."""

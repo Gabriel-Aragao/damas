@@ -1,7 +1,7 @@
 import os
 import pygame
-from config.settings import *
-from config.constants import *
+from src.config.settings import *
+from src.config.constants import *
 
 def load_background():
     """Load and scale the background image."""

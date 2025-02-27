@@ -1,6 +1,6 @@
 import pygame
-from config.settings import *
-from config.constants import *
+from src.config.settings import *
+from src.config.constants import *
 
 def draw_board(screen):
     """Draw the checkerboard pattern."""

@@ -1,6 +1,6 @@
 from copy import deepcopy  # To create independent board states during search
-from model.game_state import update_game_state  # Use standard state update logic
-from model import moves  # Use move-generation utilities
+from src.model.game_state import update_game_state  # Use standard state update logic
+from src.model import moves  # Use move-generation utilities
 
 # Evaluation function: returns a score from AI's (BLACK) perspective.
 def evaluate_state(game_state):
