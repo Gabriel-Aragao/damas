@@ -115,7 +115,7 @@ def render_settings_menu(screen):
         label = f"Level {i}" + (" (Current)" if i == current_difficulty else "")
         buttons[f'difficulty_{i}'] = create_button(label)
     
-    buttons['back'] = create_button('Back to Main Menu')
+    buttons['back'] = create_button('Main Menu')
     
     # Position buttons
     button_spacing = 70

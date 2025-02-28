@@ -17,7 +17,7 @@ SHOW_LAST_MOVE = True
 # Colors
 COLORS = {
     'BOARD_LIGHT': (255, 255, 255),  # White squares
-    'BOARD_DARK': (64, 64, 64),      # Dark gray squares
+    'BOARD_DARK': (128, 128, 128),      # Dark gray squares
     'RED_PIECE': (220, 20, 60),      # Red pieces
     'BLACK_PIECE': (0, 0, 0),        # Black pieces
     'HIGHLIGHT': (255, 255, 0, 128), # Yellow highlight with transparency
