@@ -1,8 +1,8 @@
 import asyncio
 import pygame
 from src.config.settings import *
-from src.controller.menu_controller import handle_main_menu  # now async version
-from src.controller.game_controller import handle_game_loop       # now async version
+from src.controller.menu_controller import handle_main_menu
+from src.controller.game_controller import handle_game_loop
 
 async def main():
     pygame.init()
@@ -12,14 +12,15 @@ async def main():
     while True:
         # Yield control so the browser can update
         await asyncio.sleep(0)
-        # Use await when calling your async menu loop
+        # Get menu selection
         selection = await handle_main_menu(screen)
         
         if selection == "1v1":
-            await handle_game_loop(screen)  # call async version
+            # Player vs Player mode
+            await handle_game_loop(screen, mode='pvp')
         elif selection == "ai":
-            # Future AI mode -- placeholder for additional functionality.
-            pass
+            # Player vs AI mode
+            await handle_game_loop(screen, mode='ai')
         elif selection == "exit":
             break
             
