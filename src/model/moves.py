@@ -1,13 +1,13 @@
-from copy import deepcopy  # To simulate board changes during captures
+from copy import deepcopy  # Para simular alterações no tabuleiro durante capturas
 
 def get_valid_moves(board, row, col, chain_capture=False):
     """
-    Returns a list of valid moves for the piece at (row, col).
-    Each move is a tuple (target_row, target_col, move_value, captured_positions) where:
-      • move_value == 0 for a normal (non-capturing) move,
-      • a positive integer indicates the total number of opponents captured along the chain.
-    captured_positions is a list of (row, col) for pieces captured along the route.
-    When chain_capture is True only capturing moves are returned.
+    Retorna uma lista de movimentos válidos para a peça em (row, col).
+    Cada movimento é uma tupla (target_row, target_col, move_value, captured_positions) onde:
+      • move_value == 0 para um movimento normal (sem captura),
+      • um inteiro positivo indica o número total de oponentes capturados ao longo da cadeia.
+    captured_positions é uma lista de (row, col) para peças capturadas ao longo da rota.
+    Quando chain_capture é True apenas movimentos de captura são retornados.
     """
     moves = []
     piece = board[row][col]
@@ -22,9 +22,9 @@ def get_valid_moves(board, row, col, chain_capture=False):
         if captures:
             for cap in captures:
                 moves.append(cap)
-            # No longer adding the "end" option - turns will end automatically after partial captures
+            # Não adiciona mais a opção "fim" - turnos terminarão automaticamente após capturas parciais
     else:
-        # Non-capturing moves:
+        # Movimentos sem captura:
         if is_king:
             directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
             for dr, dc in directions:
@@ -43,20 +43,20 @@ def get_valid_moves(board, row, col, chain_capture=False):
                 if 0 <= r < board_size and 0 <= c < board_size and board[r][c] == '.':
                     moves.append((r, c, 0, []))
         
-        # Add all capturing moves, including intermediate captures
+        # Adiciona todos os movimentos de captura, incluindo capturas intermediárias
         captures = get_piece_captures(board, row, col)
-        # Instead of selecting only the moves with maximum captures at each destination,
-        # we'll include all valid capture sequences (including partial ones)
+        # Em vez de selecionar apenas os movimentos com capturas máximas em cada destino,
+        # incluiremos todas as sequências de captura válidas (incluindo as parciais)
         for move in captures:
             moves.append(move)
     return moves
 
 def get_piece_captures(board, row, col):
     """
-    Returns a list of capturing moves for the piece at (row, col).
-    Each move is a tuple (end_row, end_col, capture_count, captured_positions)
-    representing the landing square after one or more jumps,
-    the total captures count, and the list of captured piece positions.
+    Retorna uma lista de movimentos de captura para a peça em (row, col).
+    Cada movimento é uma tupla (end_row, end_col, capture_count, captured_positions)
+    representando o quadrado de destino após um ou mais saltos,
+    a contagem total de capturas e a lista de posições das peças capturadas.
     """
     piece = board[row][col]
     if piece == '.':
@@ -65,9 +65,9 @@ def get_piece_captures(board, row, col):
 
 def _get_multi_captures(board, row, col, piece):
     """
-    Recursive helper to compute capture moves that may include multiple jumps.
-    Returns a list of moves as tuples: (end_row, end_col, capture_count, captured_positions).
-    Now includes intermediate capture positions as valid moves.
+    Auxiliar recursivo para calcular movimentos de captura que podem incluir múltiplos saltos.
+    Retorna uma lista de movimentos como tuplas: (end_row, end_col, capture_count, captured_positions).
+    Agora inclui posições de captura intermediárias como movimentos válidos.
     """
     board_size = len(board)
     moves = []
@@ -100,7 +100,7 @@ def _get_multi_captures(board, row, col, piece):
                         new_board[captured_r][captured_c] = '.'
                         new_board[r][c] = piece
                         
-                        # Always add the current single capture as a valid move
+                        # Sempre adiciona a captura única atual como um movimento válido
                         moves.append((r, c, 1, [(captured_r, captured_c)]))
                         
                         subsequent = _get_multi_captures(new_board, r, c, piece)
@@ -113,7 +113,7 @@ def _get_multi_captures(board, row, col, piece):
                     else:
                         break
     else:
-        # Regular piece capturing.
+        # Captura de peça regular.
         directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
         for dr, dc in directions:
             mid_r, mid_c = row + dr, col + dc
@@ -126,7 +126,7 @@ def _get_multi_captures(board, row, col, piece):
                     new_board[mid_r][mid_c] = '.'
                     new_board[end_r][end_c] = piece
                     
-                    # Always add the current single capture as a valid move
+                    # Sempre adiciona a captura única atual como um movimento válido
                     moves.append((end_r, end_c, 1, [(mid_r, mid_c)]))
                     
                     subsequent = _get_multi_captures(new_board, end_r, end_c, piece)
@@ -138,7 +138,7 @@ def _get_multi_captures(board, row, col, piece):
 
 def has_captures_available(board, current_player):
     """
-    Checks if any piece belonging to the current player has a valid capturing move.
+    Verifica se alguma peça pertencente ao jogador atual tem um movimento de captura válido.
     """
     board_size = len(board)
     for r in range(board_size):

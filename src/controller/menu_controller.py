@@ -1,18 +1,18 @@
-import asyncio  # For asynchronous delays
+import asyncio  # Para atrasos assíncronos
 import pygame
 from src.view.menu_view import render_menu, render_settings_menu, get_button_clicked
 from src.controller.game_controller import start_game, start_ai_game
 from src.config.settings_manager import set_ai_difficulty
 
-# Convert the main menu loop into an async function.
+# Converte o loop do menu principal em uma função assíncrona.
 async def handle_main_menu(screen):
-    """Handle main menu interaction and navigation asynchronously."""
+    """Manipula a interação e navegação do menu principal de forma assíncrona."""
     running = True
     while running:
-        # Draw menu and get button positions.
+        # Desenha o menu e obtém as posições dos botões.
         button_positions = render_menu(screen)
         
-        # Process events.
+        # Processa eventos.
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return "exit"
@@ -20,17 +20,17 @@ async def handle_main_menu(screen):
                 action = get_button_clicked(button_positions, event.pos)
                 if action:
                     if action == "pvp":
-                        # Await the async PvP game start.
+                        # Aguarda o início do jogo PvP assíncrono.
                         result = await start_game()
                         if result == "exit":
                             return "exit"
                     elif action == "ai":
-                        # Await the async AI game start.
+                        # Aguarda o início do jogo contra IA assíncrono.
                         result = await start_ai_game()
                         if result == "exit":
                             return "exit"
                     elif action == "settings":
-                        # Await the async settings menu.
+                        # Aguarda o menu de configurações assíncrono.
                         result = await handle_difficulty_menu(screen)
                         if result == "exit":
                             return "exit"
@@ -38,12 +38,12 @@ async def handle_main_menu(screen):
                         return "exit"
         
         pygame.display.flip()
-        # Yield control to keep the browser responsive.
+        # Cede o controle para manter o navegador responsivo.
         await asyncio.sleep(0)
 
-# Difficulty menu handler
+# Manipulador do menu de dificuldade
 async def handle_difficulty_menu(screen):
-    """Handle AI difficulty selection menu."""
+    """Manipula o menu de seleção de dificuldade da IA."""
     running = True
     while running:
         button_positions = render_settings_menu(screen)
@@ -55,11 +55,11 @@ async def handle_difficulty_menu(screen):
                 action = get_button_clicked(button_positions, event.pos)
                 if action:
                     if action.startswith('difficulty_'):
-                        # Extract difficulty level from the action string
+                        # Extrai o nível de dificuldade da string de ação
                         difficulty = int(action.split('_')[1])
-                        # Set the AI difficulty
+                        # Define a dificuldade da IA
                         set_ai_difficulty(difficulty)
-                        print(f"[LOG] AI difficulty set to level {difficulty}")
+                        print(f"[LOG] Dificuldade da IA definida para nível {difficulty}")
                     elif action == "back":
                         return None
         

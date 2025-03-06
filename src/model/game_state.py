@@ -3,17 +3,17 @@ from .moves import get_valid_moves, get_piece_captures, has_captures_available
 
 def initialize_game():
     """
-    Initialize the game state.
-    The board is created via create_board() and initialized with pieces using initialize_pieces().
+    Inicializa o estado do jogo.
+    O tabuleiro é criado via create_board() e inicializado com peças usando initialize_pieces().
     """
-    board = create_board()                  # Create board with proper dimensions
-    board = initialize_pieces(board)        # Place initial pieces on the board
+    board = create_board()                  # Cria tabuleiro com dimensões adequadas
+    board = initialize_pieces(board)        # Coloca peças iniciais no tabuleiro
     game_state = {
         'board': board,
-        'current_player': 'RED',            # or 'BLACK'
+        'current_player': 'RED',            # ou 'BLACK'
         'selected_piece': None,
         'valid_moves': [],
-        'original_valid_moves': [],         # Stores the valid moves from the original position
+        'original_valid_moves': [],         # Armazena os movimentos válidos da posição original
         'last_move': None,
         'game_over': False,
         'winner': None,
@@ -23,94 +23,94 @@ def initialize_game():
 
 def update_game_state(game_state, move):
     """
-    Update the game state after a move is executed.
-    The move is a 4-tuple: (dest_row, dest_col, move_value, captured_positions).
-    - move_value == 0 indicates a non-capturing move.
-    - A positive integer indicates a capturing move (the number of pieces captured).
+    Atualiza o estado do jogo após um movimento ser executado.
+    O movimento é uma tupla de 4 elementos: (dest_row, dest_col, move_value, captured_positions).
+    - move_value == 0 indica um movimento sem captura.
+    - Um número inteiro positivo indica um movimento de captura (o número de peças capturadas).
     
-    For partial captures, the turn ends immediately after the move.
+    Para capturas parciais, o turno termina imediatamente após o movimento.
     """
-    # Get the starting square of the move.
+    # Obtém o quadrado inicial do movimento.
     selected = game_state.get('selected_piece')
     if not selected:
-        return game_state  # Nothing to do if no piece is selected.
+        return game_state  # Nada a fazer se nenhuma peça estiver selecionada.
     
     dest_row, dest_col, move_value, captured_positions = move
     board = game_state['board']
     piece = board[selected[0]][selected[1]]
     start_row, start_col = selected
     
-    # Save the original board state for debugging
+    # Salva o estado original do tabuleiro para depuração
     orig_board = [row[:] for row in board]
     
-    # Clear the starting square.
+    # Limpa o quadrado inicial.
     board[selected[0]][selected[1]] = '.'
     
-    # If this is a capturing move, remove all captured pieces.
+    # Se for um movimento de captura, remove todas as peças capturadas.
     if captured_positions:
         for pos in captured_positions:
             board[pos[0]][pos[1]] = '.'
     
-    # King promotion check:
-    # Red pieces are promoted when reaching row 0.
-    # Black pieces are promoted when reaching the bottom row.
+    # Verificação de promoção para dama:
+    # Peças vermelhas são promovidas ao alcançar a linha 0.
+    # Peças pretas são promovidas ao alcançar a linha inferior.
     board_size = len(board)
     if piece.lower() == 'r' and dest_row == 0:
         piece = 'R'
     elif piece.lower() == 'b' and dest_row == board_size - 1:
         piece = 'B'
     
-    # Place the moving piece at its destination.
+    # Coloca a peça em movimento no seu destino.
     board[dest_row][dest_col] = piece
     game_state['last_move'] = (selected, (dest_row, dest_col))
     
-    # Flag for whether there are further captures available
+    # Flag para verificar se há mais capturas disponíveis
     has_further_captures = False
     
-    # For capture moves, find the maximum capture from the starting position
+    # Para movimentos de captura, encontra a captura máxima da posição inicial
     max_capture_from_start = 0
     if move_value > 0:
-        # Store original valid_moves to calculate max capture
+        # Armazena valid_moves originais para calcular a captura máxima
         original_valid_moves = game_state.get('original_valid_moves', [])
         if not original_valid_moves:
-            # If not already stored, use the valid_moves from before this move
+            # Se não estiver já armazenado, usa os valid_moves de antes deste movimento
             original_valid_moves = game_state.get('valid_moves', [])
             game_state['original_valid_moves'] = original_valid_moves
         
-        # Find max capture count from the original position
+        # Encontra a contagem máxima de capturas da posição original
         for vm in original_valid_moves:
             if isinstance(vm[2], int) and vm[2] > max_capture_from_start:
                 max_capture_from_start = vm[2]
         
-        # Check if this move has further captures available
+        # Verifica se este movimento tem mais capturas disponíveis
         further_captures = get_piece_captures(board, dest_row, dest_col)
         has_further_captures = len(further_captures) > 0
     
-    # Direct rule for turn ending:
-    # 1. Non-capturing moves always end the turn
-    # 2. If this was a partial capture (less than max_capture_from_start), end the turn
-    # 3. If there are no further captures available, end the turn
+    # Regra direta para finalização de turno:
+    # 1. Movimentos sem captura sempre terminam o turno
+    # 2. Se foi uma captura parcial (menos que max_capture_from_start), termina o turno
+    # 3. Se não houver mais capturas disponíveis, termina o turno
     if move_value == 0 or move_value < max_capture_from_start or not has_further_captures:
-        # End the turn
+        # Finaliza o turno
         game_state['selected_piece'] = None
         game_state['valid_moves'] = []
-        game_state['original_valid_moves'] = []  # Clear stored moves
+        game_state['original_valid_moves'] = []  # Limpa os movimentos armazenados
         game_state['current_player'] = 'BLACK' if game_state['current_player'] == 'RED' else 'RED'
     else:
-        # Only continue capture sequence if this was a maximum capture so far
-        # and there are further captures available
+        # Só continua a sequência de captura se esta foi uma captura máxima até agora
+        # e há mais capturas disponíveis
         game_state['selected_piece'] = (dest_row, dest_col)
         game_state['valid_moves'] = get_valid_moves(board, dest_row, dest_col, chain_capture=True)
     
-    # Check if one side has no pieces left.
+    # Verifica se um lado não tem mais peças.
     check_game_over(game_state)
     
     return game_state
 
 def has_any_valid_moves(game_state, player):
     """
-    Check if a player has any valid moves with any of their pieces.
-    Returns True if at least one valid move exists, False otherwise.
+    Verifica se um jogador tem algum movimento válido com qualquer uma de suas peças.
+    Retorna True se pelo menos um movimento válido existir, False caso contrário.
     """
     board = game_state['board']
     board_size = len(board)
@@ -120,17 +120,17 @@ def has_any_valid_moves(game_state, player):
         for col in range(board_size):
             piece = board[row][col]
             if piece.lower() == piece_char:
-                # Check if this piece has any valid moves
+                # Verifica se esta peça tem algum movimento válido
                 if get_valid_moves(board, row, col):
                     return True
     return False
 
 def check_game_over(game_state):
     """
-    Check if the game is over due to:
-    1. One side has no remaining pieces
-    2. Current player has no valid moves with any of their pieces
-    If game is over, mark game_over True and set the winner.
+    Verifica se o jogo acabou devido a:
+    1. Um lado não tem mais peças restantes
+    2. O jogador atual não tem movimentos válidos com nenhuma de suas peças
+    Se o jogo acabou, marca game_over como True e define o vencedor.
     """
     board = game_state['board']
     red_count = 0
@@ -142,7 +142,7 @@ def check_game_over(game_state):
             elif cell.lower() == 'b':
                 black_count += 1
     
-    # Check for no pieces condition
+    # Verifica a condição de ausência de peças
     if red_count == 0:
         game_state['game_over'] = True
         game_state['winner'] = 'BLACK'
@@ -152,7 +152,7 @@ def check_game_over(game_state):
         game_state['winner'] = 'RED'
         return
     
-    # Check for no valid moves condition
+    # Verifica a condição de ausência de movimentos válidos
     current_player = game_state['current_player']
     if not has_any_valid_moves(game_state, current_player):
         game_state['game_over'] = True
@@ -160,10 +160,10 @@ def check_game_over(game_state):
         return
 
 def select_piece(game_state, row, col):
-    """Select a piece and update valid moves."""
+    """Seleciona uma peça e atualiza os movimentos válidos."""
     board = game_state['board']
     piece = board[row][col]
-    # Must be a valid piece for the current player.
+    # Deve ser uma peça válida para o jogador atual.
     if piece == '.' or (game_state['current_player'] == 'RED' and piece.lower() == 'b') or \
        (game_state['current_player'] == 'BLACK' and piece.lower() == 'r'):
         return False
@@ -174,12 +174,12 @@ def select_piece(game_state, row, col):
     
     game_state['selected_piece'] = (row, col)
     game_state['valid_moves'] = valid_moves
-    game_state['original_valid_moves'] = valid_moves.copy()  # Store a copy of the original valid moves
+    game_state['original_valid_moves'] = valid_moves.copy()  # Armazena uma cópia dos movimentos válidos originais
     game_state['must_capture'] = has_captures_available(board, game_state['current_player'])
     return True
 
 def get_game_status(game_state):
-    """Return the current game status."""
+    """Retorna o status atual do jogo."""
     status = {
         'current_player': game_state['current_player'],
         'game_over': game_state['game_over'],
@@ -191,7 +191,7 @@ def get_game_status(game_state):
     return status
 
 def can_select_piece(game_state, row, col):
-    """Check if the piece at (row, col) can be selected."""
+    """Verifica se a peça em (row, col) pode ser selecionada."""
     if game_state['game_over']:
         return False
     
@@ -205,10 +205,10 @@ def can_select_piece(game_state, row, col):
 
 def process_click(game_state, row, col):
     """
-    Process a click on the board at (row, col):
-      - If a piece is selected and the click matches one of its valid move destinations,
-        execute that move.
-      - Otherwise, attempt to select a new piece.
+    Processa um clique no tabuleiro em (row, col):
+      - Se uma peça estiver selecionada e o clique corresponder a um dos destinos de movimento válido,
+        executa esse movimento.
+      - Caso contrário, tenta selecionar uma nova peça.
     """
     if game_state['selected_piece'] is not None:
         for move in game_state['valid_moves']:

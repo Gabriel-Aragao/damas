@@ -1,27 +1,27 @@
-# Game States
+# Estados do Jogo
 MENU = 'MENU'
 PLAYING = 'PLAYING'
 GAME_OVER = 'GAME_OVER'
 PAUSED = 'PAUSED'
 
-# Player Types
+# Tipos de Jogadores
 PLAYER_1 = 'PLAYER_1'
 PLAYER_2 = 'PLAYER_2'
 AI_PLAYER = 'AI'
 
-# Piece Types
+# Tipos de Peças
 EMPTY = '.'
 RED_PIECE = 'r'
 BLACK_PIECE = 'b'
 RED_KING = 'R'
 BLACK_KING = 'B'
 
-# Move Types
+# Tipos de Movimentos
 NORMAL_MOVE = 'NORMAL'
 CAPTURE_MOVE = 'CAPTURE'
 INVALID_MOVE = 'INVALID'
 
-# Board Directions
+# Direções do Tabuleiro
 DIRECTIONS = {
     'UP_LEFT': (-1, -1),
     'UP_RIGHT': (-1, 1),
@@ -29,24 +29,24 @@ DIRECTIONS = {
     'DOWN_RIGHT': (1, 1)
 }
 
-# Game Results
+# Resultados do Jogo
 RED_WINS = 'RED_WINS'
 BLACK_WINS = 'BLACK_WINS'
 DRAW = 'DRAW'
 
-# Event Types
+# Tipos de Eventos
 PIECE_SELECTED = 'PIECE_SELECTED'
 PIECE_MOVED = 'PIECE_MOVED'
 PIECE_CAPTURED = 'PIECE_CAPTURED'
 KING_CROWNED = 'KING_CROWNED'
 
-# Board Positions
+# Posições do Tabuleiro
 FIRST_ROW = 0
 LAST_ROW = 7
 FIRST_COL = 0
 LAST_COL = 7
 
-# Error Messages
-INVALID_POSITION = 'Invalid board position'
-INVALID_PIECE = 'Invalid piece selection'
-INVALID_MOVE = 'Invalid move'
+# Mensagens de Erro
+INVALID_POSITION = 'Posição inválida no tabuleiro'
+INVALID_PIECE = 'Seleção de peça inválida'
+INVALID_MOVE = 'Movimento inválido'

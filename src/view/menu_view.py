@@ -4,31 +4,31 @@ from src.config.settings import *
 from src.config.constants import *
 
 def load_background():
-    """Load and scale the background image."""
+    """Carrega e redimensiona a imagem de fundo."""
     try:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         image_path = os.path.join(current_dir, 'assets', 'menu_bg.png')
         bg_image = pygame.image.load(image_path)
         return pygame.transform.scale(bg_image, (WINDOW_WIDTH, WINDOW_HEIGHT))
     except Exception as e:
-        print(f"Error loading background: {e}")
+        print(f"Erro ao carregar o fundo: {e}")
         return None
 
 def render_menu(screen):
-    """Render the main menu."""
-    # Load and draw background
+    """Renderiza o menu principal."""
+    # Carrega e desenha o fundo
     bg_image = load_background()
     if bg_image:
         screen.blit(bg_image, (0, 0))
     else:
         screen.fill(COLORS['BOARD_DARK'])
     
-    # Add the settings button
+    # Adiciona o botão de configurações
     buttons = {
-        'pvp': create_button('Player vs Player'),
-        'ai': create_button('Player vs AI'),
-        'settings': create_button('Settings'),
-        'exit': create_button('Exit')
+        'pvp': create_button('Jogador vs Jogador'),
+        'ai': create_button('Jogador vs IA'),
+        'settings': create_button('Configurações'),
+        'exit': create_button('Sair')
     }
     
     button_spacing = 70
@@ -52,7 +52,7 @@ def render_menu(screen):
     return button_positions
 
 def create_button(text, font_size=36, width=300, height=50):
-    """Create a button surface with text."""
+    """Cria uma superfície de botão com texto."""
     font = pygame.font.SysFont('Arial', font_size)
     button_surface = pygame.Surface((width, height))
     text_surface = font.render(text, True, COLORS['BOARD_LIGHT'])
@@ -66,63 +66,63 @@ def create_button(text, font_size=36, width=300, height=50):
     }
 
 def draw_button(screen, button, position, is_hovered=False):
-    """Draw a button on the screen."""
+    """Desenha um botão na tela."""
     x, y = position
     button['rect'].topleft = (x, y)
     
-    # Button background - create a surface with alpha
+    # Fundo do botão - cria uma superfície com transparência
     bg_surface = pygame.Surface((button['rect'].width, button['rect'].height), pygame.SRCALPHA)
     
-    # Choose color based on hover state
+    # Escolhe a cor com base no estado de hover
     if is_hovered:
-        bg_color = (255, 255, 0, 200)  # Yellow with transparency
+        bg_color = (255, 255, 0, 200)  # Amarelo com transparência
     else:
-        bg_color = (64, 64, 64, 200)  # Dark gray with transparency
+        bg_color = (64, 64, 64, 200)  # Cinza escuro com transparência
     
-    # Draw the background onto the alpha surface
+    # Desenha o fundo na superfície com transparência
     pygame.draw.rect(bg_surface, bg_color, bg_surface.get_rect(), border_radius=10)
     screen.blit(bg_surface, button['rect'].topleft)
     
-    # Button border
+    # Borda do botão
     pygame.draw.rect(screen, COLORS['BOARD_LIGHT'], button['rect'], 2, border_radius=10)
     
-    # Center text on button
+    # Centraliza o texto no botão
     text_x = x + (button['rect'].width - button['text'].get_width()) // 2
     text_y = y + (button['rect'].height - button['text'].get_height()) // 2
     screen.blit(button['text'], (text_x, text_y))
 
 def render_settings_menu(screen):
-    """Render the settings menu with difficulty options."""
+    """Renderiza o menu de configurações com opções de dificuldade."""
     from src.config.settings_manager import get_ai_difficulty
     
-    # Create semi-transparent overlay
+    # Cria sobreposição semi-transparente
     overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
     overlay.fill((0, 0, 0, 128))
     screen.blit(overlay, (0, 0))
     
-    # Draw menu title
+    # Desenha o título do menu
     font = pygame.font.SysFont('Arial', 48)
-    title_text = font.render('AI Difficulty Settings', True, COLORS['BOARD_LIGHT'])
+    title_text = font.render('Configurações de Dificuldade da IA', True, COLORS['BOARD_LIGHT'])
     title_x = (WINDOW_WIDTH - title_text.get_width()) // 2
     screen.blit(title_text, (title_x, 80))
     
-    # Get current AI difficulty
+    # Obtém a dificuldade atual da IA
     current_difficulty = get_ai_difficulty()
     
-    # Create difficulty buttons
+    # Cria botões de dificuldade
     buttons = {}
     for i in range(1, 6):
-        label = f"Level {i}" + (" (Current)" if i == current_difficulty else "")
+        label = f"Nível {i}" + (" (Atual)" if i == current_difficulty else "")
         buttons[f'difficulty_{i}'] = create_button(label)
     
-    buttons['back'] = create_button('Main Menu')
+    buttons['back'] = create_button('Menu Principal')
     
-    # Position buttons
+    # Posiciona os botões
     button_spacing = 70
     total_height = len(buttons) * button_spacing
-    start_y = (WINDOW_HEIGHT - total_height) // 2 + 30  # Offset for title
+    start_y = (WINDOW_HEIGHT - total_height) // 2 + 30  # Deslocamento para o título
     
-    # Draw buttons
+    # Desenha os botões
     mouse_pos = pygame.mouse.get_pos()
     button_positions = {}
     
@@ -134,22 +134,22 @@ def render_settings_menu(screen):
         button_rect = pygame.Rect(x, y, button['rect'].width, button['rect'].height)
         is_hovered = button_rect.collidepoint(mouse_pos)
         
-        # Highlight current difficulty
+        # Destaca a dificuldade atual
         if key == f'difficulty_{current_difficulty}':
-            # Create a slightly different highlight color for current selection
-            highlight_color = (255, 215, 0, 100)  # Gold with transparency
+            # Cria uma cor de destaque ligeiramente diferente para a seleção atual
+            highlight_color = (255, 215, 0, 100)  # Dourado com transparência
             pygame.draw.rect(screen, highlight_color, button_rect, border_radius=10)
         
         draw_button(screen, button, (x, y), is_hovered)
     
-    # Add explanation text
+    # Adiciona texto explicativo
     font_small = pygame.font.SysFont('Arial', 18)
     explanations = [
-        "Level 1: Easy - AI looks 1 move ahead",
-        "Level 2: Casual - AI looks 2 moves ahead",
-        "Level 3: Moderate - AI looks 3 moves ahead",
-        "Level 4: Challenging - AI looks 4 moves ahead",
-        "Level 5: Difficult - AI looks 5 moves ahead"
+        "Nível 1: Fácil - IA prevê 1 movimento à frente",
+        "Nível 2: Casual - IA prevê 2 movimentos à frente",
+        "Nível 3: Moderado - IA prevê 3 movimentos à frente",
+        "Nível 4: Desafiador - IA prevê 4 movimentos à frente",
+        "Nível 5: Difícil - IA prevê 5 movimentos à frente"
     ]
     
     for i, text in enumerate(explanations):
@@ -162,25 +162,25 @@ def render_settings_menu(screen):
     return button_positions
 
 def render_pause_menu(screen):
-    """Render the pause menu overlay."""
-    # Create semi-transparent overlay
+    """Renderiza a sobreposição do menu de pausa."""
+    # Cria sobreposição semi-transparente
     overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
     overlay.fill((0, 0, 0, 128))
     screen.blit(overlay, (0, 0))
     
-    # Create buttons
+    # Cria botões
     buttons = {
-        'resume': create_button('Resume'),
-        'menu': create_button('Main Menu'),
-        'exit': create_button('Exit Game')
+        'resume': create_button('Continuar'),
+        'menu': create_button('Menu Principal'),
+        'exit': create_button('Sair do Jogo')
     }
     
-    # Position buttons
+    # Posiciona botões
     button_spacing = 70
     total_height = len(buttons) * button_spacing
     start_y = (WINDOW_HEIGHT - total_height) // 2
     
-    # Draw buttons
+    # Desenha botões
     mouse_pos = pygame.mouse.get_pos()
     button_positions = {}
     
@@ -198,9 +198,9 @@ def render_pause_menu(screen):
     return button_positions
 
 def get_button_clicked(button_positions, mouse_pos):
-    """Return which button was clicked, if any."""
+    """Retorna qual botão foi clicado, se houver."""
     for key, (x, y) in button_positions.items():
-        button_rect = pygame.Rect(x, y, 300, 50)  # Using standard button size
+        button_rect = pygame.Rect(x, y, 300, 50)  # Usando tamanho padrão de botão
         if button_rect.collidepoint(mouse_pos):
             return key
     return None
