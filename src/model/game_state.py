@@ -1,4 +1,4 @@
-from .board import create_board, initialize_pieces, make_move, get_winner
+from .board import create_board, initialize_pieces
 from .moves import get_valid_moves, get_piece_captures, has_captures_available
 
 def initialize_game():
@@ -38,12 +38,7 @@ def update_game_state(game_state, move):
     dest_row, dest_col, move_value, captured_positions = move
     board = game_state['board']
     piece = board[selected[0]][selected[1]]
-    start_row, start_col = selected
     
-    # Salva o estado original do tabuleiro para depuração
-    orig_board = [row[:] for row in board]
-    
-    # Limpa o quadrado inicial.
     board[selected[0]][selected[1]] = '.'
     
     # Se for um movimento de captura, remove todas as peças capturadas.
@@ -126,12 +121,6 @@ def has_any_valid_moves(game_state, player):
     return False
 
 def check_game_over(game_state):
-    """
-    Verifica se o jogo acabou devido a:
-    1. Um lado não tem mais peças restantes
-    2. O jogador atual não tem movimentos válidos com nenhuma de suas peças
-    Se o jogo acabou, marca game_over como True e define o vencedor.
-    """
     board = game_state['board']
     red_count = 0
     black_count = 0
@@ -142,25 +131,23 @@ def check_game_over(game_state):
             elif cell.lower() == 'b':
                 black_count += 1
     
-    # Verifica a condição de ausência de peças
     if red_count == 0:
         game_state['game_over'] = True
-        game_state['winner'] = 'BLACK'
+        game_state['winner'] = 'Pretas'
         return
     elif black_count == 0:
         game_state['game_over'] = True
-        game_state['winner'] = 'RED'
+        game_state['winner'] = 'Vermelhas'
         return
     
-    # Verifica a condição de ausência de movimentos válidos
+
     current_player = game_state['current_player']
     if not has_any_valid_moves(game_state, current_player):
         game_state['game_over'] = True
-        game_state['winner'] = 'BLACK' if current_player == 'RED' else 'RED'
+        game_state['winner'] = 'Vermelhas' if current_player == 'RED' else 'Vermelhas'
         return
 
 def select_piece(game_state, row, col):
-    """Seleciona uma peça e atualiza os movimentos válidos."""
     board = game_state['board']
     piece = board[row][col]
     # Deve ser uma peça válida para o jogador atual.
@@ -179,7 +166,6 @@ def select_piece(game_state, row, col):
     return True
 
 def get_game_status(game_state):
-    """Retorna o status atual do jogo."""
     status = {
         'current_player': game_state['current_player'],
         'game_over': game_state['game_over'],
@@ -191,7 +177,6 @@ def get_game_status(game_state):
     return status
 
 def can_select_piece(game_state, row, col):
-    """Verifica se a peça em (row, col) pode ser selecionada."""
     if game_state['game_over']:
         return False
     
@@ -204,12 +189,6 @@ def can_select_piece(game_state, row, col):
     return allowed
 
 def process_click(game_state, row, col):
-    """
-    Processa um clique no tabuleiro em (row, col):
-      - Se uma peça estiver selecionada e o clique corresponder a um dos destinos de movimento válido,
-        executa esse movimento.
-      - Caso contrário, tenta selecionar uma nova peça.
-    """
     if game_state['selected_piece'] is not None:
         for move in game_state['valid_moves']:
             if move[0] == row and move[1] == col:
